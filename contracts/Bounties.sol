@@ -187,7 +187,7 @@ contract Bounties {
         return bounties.length;
     }
 
-    function getBounty(uint _index)
+    function getBounty(uint _id)
         public
         view
         returns (
@@ -199,9 +199,9 @@ contract Bounties {
             uint balance
         )
     {
-        Bounty memory bounty = bounties[_index];
+        Bounty memory bounty = bounties[_id];
         return (
-            _index,
+            _id,
             bounty.issuer,
             bounty.status,
             bounty.data,

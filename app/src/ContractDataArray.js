@@ -1,5 +1,6 @@
 import { drizzleConnect } from 'drizzle-react'
 import React, { Component } from 'react'
+import { Link } from "react-router-dom";
 import PropTypes from 'prop-types'
 
 class ContractDataArray extends Component {
@@ -89,8 +90,14 @@ class ContractDataArray extends Component {
       Object.keys(item).forEach((key) => {
         if (i != key) {
           var uniquePropKey = 'item-' + index + '-prop-' + i;
+          if (key == 'id') {
+            var detailedLink = this.props.pathDetailed + '/' + item[key];
+            var valueDisplay = <Link to={detailedLink}>{item[key]}</Link>;
+          } else {
+            var valueDisplay = item[key];
+          }
           displayObjectProps.push(<li key={uniquePropKey}>
-            <strong>{key}</strong>:&nbsp;{`${item[key]}`}
+            <strong>{key}</strong>:&nbsp;{valueDisplay}
           </li>);
         }
 

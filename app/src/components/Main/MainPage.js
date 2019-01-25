@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import { AccountData, ContractForm } from "drizzle-react-components";
-import ContractDataArray from "./ContractDataArray";
+import ContractDataArray from "../../ContractDataArray";
+import Navigation from "../Navigation/Navigation";
 
-class MyComponent extends Component {
+class MainPage extends Component {
   render() {
     return (
       <div className="App">
+        <Navigation />
         <div className="section">
           <h2>Active Account</h2>
           <AccountData accountIndex="0" units="ether" precision="3" />
@@ -26,6 +28,7 @@ class MyComponent extends Component {
             contract="Bounties"
             methodCounter="getCountBounties"
             methodIteration="getBounty"
+            pathDetailed="/bounty"
           />
         </div>
 
@@ -35,6 +38,7 @@ class MyComponent extends Component {
             contract="Bounties"
             methodCounter="getCountMyBounties"
             methodIteration="getMyBounty"
+            pathDetailed="/bounty"
           />
         </div>
 
@@ -44,6 +48,7 @@ class MyComponent extends Component {
             contract="Bounties"
             methodCounter="getCountMySubmissions"
             methodIteration="getMySubmission"
+            pathDetailed="/submission"
           />
         </div>
       </div>
@@ -51,4 +56,4 @@ class MyComponent extends Component {
   }
 }
 
-export default MyComponent;
+export default MainPage;
