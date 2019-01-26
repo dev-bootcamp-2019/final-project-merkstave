@@ -42,7 +42,7 @@ contract Bounties {
     }
 
     modifier checkValueTransferred(uint _amount) {
-        require((_amount * 1 wei) == msg.value);
+        require((_amount * 1 wei) == msg.value, 'Transfered value not matching amount provided in the request');
         _;
     }
 
@@ -67,12 +67,12 @@ contract Bounties {
     }
 
     modifier checkBountyStatus(uint _bountyId, BountyStatuses _status) {
-        require(bounties[_bountyId].status == _status);
+        require(bounties[_bountyId].status == _status, 'Incompatible bounty status');
         _;
     }
 
     modifier checkRewardDeposit(uint _bountyId) {
-        require(bounties[_bountyId].balance >= bounties[_bountyId].reward);
+        require(bounties[_bountyId].balance >= bounties[_bountyId].reward, 'Not enough funds on balance to pay the reward');
         _;
     }
 
@@ -116,7 +116,7 @@ contract Bounties {
         checkValueTransferred(_value)
     {
         bounties[_bountyId].balance += _value;
-        require(bounties[_bountyId].balance >= bounties[_bountyId].reward);
+        require(bounties[_bountyId].balance >= bounties[_bountyId].reward, "Not enough balance to match reward");
         bounties[_bountyId].status = BountyStatuses.Active;
         // BountyActivated(_bountyId, msg.sender);
     }
@@ -159,6 +159,7 @@ contract Bounties {
         checkRewardDeposit(_bountyId)
     {
         submissions[_submissionId].status = SubmissionStatuses.Accepted;
+        bounties[_bountyId].status = BountyStatuses.Closed;
         uint rewardAmount = bounties[_bountyId].reward;
         bounties[_bountyId].balance -= rewardAmount;
         if (submissions[_submissionId].submitter != address(0)) {
@@ -210,6 +211,25 @@ contract Bounties {
         );
     }
 
+    function getSubmission(uint _id)
+        public
+        view
+        returns (
+            uint id,
+            address payable submitter,
+            SubmissionStatuses status,
+            string memory data
+        )
+    {
+        Submission memory submission = submissions[_id];
+        return (
+            _id,
+            submission.submitter,
+            submission.status,
+            submission.data
+        );
+    }
+
     function getCountMyBounties()
         public
         view
@@ -255,6 +275,7 @@ contract Bounties {
         view
         returns (
             uint id,
+            address payable submitter,
             SubmissionStatuses status,
             string memory data
         )
@@ -263,6 +284,35 @@ contract Bounties {
         Submission memory submission = submissions[submissionId];
         return (
             submissionId,
+            submission.submitter,
+            submission.status,
+            submission.data
+        );
+    }
+
+    function getCountBountySubmissions(uint _id)
+        public
+        view
+        returns (uint)
+    {
+        return bountySubmissions[_id].length;
+    }
+
+    function getBountySubmission(uint _id, uint _index)
+        public
+        view
+        returns (
+            uint id,
+            address payable submitter,
+            SubmissionStatuses status,
+            string memory data
+        )
+    {
+        uint submissionId = bountySubmissions[_id][_index];
+        Submission memory submission = submissions[submissionId];
+        return (
+            submissionId,
+            submission.submitter,
             submission.status,
             submission.data
         );

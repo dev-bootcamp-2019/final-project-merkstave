@@ -17,27 +17,28 @@ class ContractDataArray extends Component {
   }
 
   initDataKeyCounter() {
-    return this.contracts[this.props.contract].methods[this.props.methodCounter].cacheCall();
+    var methodArgs = this.props.methodArgs ? this.props.methodArgs : [];
+    return this.contracts[this.props.contract].methods[this.props.methodCounter].cacheCall(...methodArgs);
   }
 
   initDataKeysItems(count) {
     var dataKeysItems = [];
     for (var i = 0; i < count; i++) {
-      dataKeysItems.push(this.contracts[this.props.contract].methods[this.props.methodIteration].cacheCall(i));
+      var methodArgs = this.props.methodArgs ? this.props.methodArgs : [];
+      methodArgs.push(i);
+      dataKeysItems.push(this.contracts[this.props.contract].methods[this.props.methodIteration].cacheCall(...methodArgs));
     }
     return dataKeysItems;
   }
 
   componentDidMount() {
     var timestr = new Date().toLocaleString();
-    console.log("componentDidMount", timestr);
     var dataKeyCounter = this.initDataKeyCounter();
     this.setState({ dataKeyCounter })
   }
 
   componentDidUpdate() {
     var timestr = new Date().toLocaleString();
-    console.log("componentDidUpdate", timestr);
     if (this.state.dataKeyCounter in this.props.contracts[this.props.contract][this.props.methodCounter]) {
       var count = this.props.contracts[this.props.contract][this.props.methodCounter][this.state.dataKeyCounter].value;
       if (count !== this.state.lastCount) {
@@ -66,7 +67,7 @@ class ContractDataArray extends Component {
     var items = [];
     var arrayLength = this.state.dataKeysItems.length;
     var isResolved = arrayLength > 0;
-    for (i = 0; i < arrayLength; i++) {
+    for (i = arrayLength - 1; i >= 0; i--) {
       var itemKey = this.state.dataKeysItems[i];
       if (itemKey in this.props.contracts[this.props.contract][this.props.methodIteration]) {
         items.push(this.props.contracts[this.props.contract][this.props.methodIteration][itemKey].value);

@@ -6,6 +6,9 @@ class Navigation extends Component {
     return (
       <div className="navigation">
       	<Link to="/">Home</Link>
+      	<Link to="/bounties">All bounties</Link>
+      	<Link to="/my-bounties">My bounties</Link>
+      	<Link to="/my-submissions">My submissions</Link>
       </div>
     );
   }

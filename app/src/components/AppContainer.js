@@ -9,6 +9,6 @@ const mapStateToProps = state => {
   };
 };
 
-const MainContainer = drizzleConnect(MainPage, mapStateToProps);
+const AppContainer = drizzleConnect(MainPage, mapStateToProps);
 
-export default MainContainer;
+export default AppContainer;
