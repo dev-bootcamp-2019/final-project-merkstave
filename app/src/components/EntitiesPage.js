@@ -7,7 +7,7 @@ class EntitiesPage extends Component {
     var methodCounter = 'getCountBounties';
     var methodIteration = 'getBounty';
     var pathDetailed = '/bounty';
-    var methodArgs = [];
+    var parentId = null;
 
     switch (this.props.entityClass) {
       case 'my-bounties':
@@ -23,8 +23,9 @@ class EntitiesPage extends Component {
         methodCounter = 'getCountBountySubmissions';
         methodIteration = 'getBountySubmission';
         pathDetailed = '/submission';
-        methodArgs = [this.props.match.params.id]
+        parentId = this.props.match.params.id;
       break;
+      default:
     }
 
     return (
@@ -34,7 +35,7 @@ class EntitiesPage extends Component {
           methodCounter={methodCounter}
           methodIteration={methodIteration}
           pathDetailed={pathDetailed}
-          methodArgs={methodArgs}
+          parentId={parentId}
         />
       </div>
     );
