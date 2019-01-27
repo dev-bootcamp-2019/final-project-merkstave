@@ -36,6 +36,13 @@ contract Bounties {
         string data;
     }
 
+    event BountyCreated(address issuer, uint id);
+    event BountyActivated(uint id, uint balance);
+    event BountyClosed(uint id, uint balance, uint refundAmount);
+    event SubmissionCreated(uint submissionId, uint bountyId, address submitter);
+    event SubmissionAccepted(uint submissionId, uint bountyId, uint oldBalance, uint newBalance, uint rewardAmount);
+    event SubmissionRejected(uint submissionId, uint bountyId);
+
     modifier valueNotZero(uint _value) {
         require(_value != 0);
         _;
@@ -104,7 +111,7 @@ contract Bounties {
         Bounty memory bounty = Bounty(msg.sender, BountyStatuses.Draft, _data, _reward, 0);
         uint bountyId = bounties.push(bounty) - 1;
         userBounties[msg.sender].push(bountyId);
-        // BountyIssued(bounties.length - 1);
+        emit BountyCreated(msg.sender, bountyId);
         return bountyId;
     }
 
@@ -118,7 +125,7 @@ contract Bounties {
         bounties[_bountyId].balance += _value;
         require(bounties[_bountyId].balance >= bounties[_bountyId].reward, "Not enough balance to match reward");
         bounties[_bountyId].status = BountyStatuses.Active;
-        // BountyActivated(_bountyId, msg.sender);
+        emit BountyActivated(_bountyId, bounties[_bountyId].balance);
     }
 
     function closeBounty(uint _bountyId)
@@ -132,7 +139,7 @@ contract Bounties {
         if (refundAmount > 0 && bounties[_bountyId].issuer != address(0)) {
             bounties[_bountyId].issuer.transfer(refundAmount);
         }
-        // BountyKilled(_bountyId, msg.sender);
+        emit BountyClosed(_bountyId, bounties[_bountyId].balance, refundAmount);
     }
 
     function createSubmission(uint _bountyId, string memory _data)
@@ -146,7 +153,7 @@ contract Bounties {
         uint sId = submissions.push(submission) - 1;
         bountySubmissions[_bountyId].push(sId);
         userSubmissions[msg.sender].push(sId);
-        // BountyFulfilled(_bountyId, msg.sender, (submissions.length - 1));
+        emit SubmissionCreated(sId, _bountyId, msg.sender);
     }
 
     function acceptSubmission(uint _bountyId, uint _submissionId)
@@ -158,14 +165,16 @@ contract Bounties {
         checkSubmissionStatus(_submissionId, SubmissionStatuses.New)
         checkRewardDeposit(_bountyId)
     {
+        uint oldBalance = bounties[_bountyId].balance;
+        uint rewardAmount = bounties[_bountyId].reward;
         submissions[_submissionId].status = SubmissionStatuses.Accepted;
         bounties[_bountyId].status = BountyStatuses.Closed;
-        uint rewardAmount = bounties[_bountyId].reward;
         bounties[_bountyId].balance -= rewardAmount;
-        if (submissions[_submissionId].submitter != address(0)) {
+        uint newBalance = bounties[_bountyId].balance;
+        if (rewardAmount > 0 && submissions[_submissionId].submitter != address(0)) {
             submissions[_submissionId].submitter.transfer(rewardAmount);
         }
-        // SubmissionAccepted(_bountyId, msg.sender, _submissionId);
+        emit SubmissionAccepted(_submissionId, _bountyId, oldBalance, newBalance, rewardAmount);
     }
 
     function rejectSubmission(uint _bountyId, uint _submissionId)
@@ -177,7 +186,7 @@ contract Bounties {
         checkSubmissionStatus(_submissionId, SubmissionStatuses.New)
     {
         submissions[_submissionId].status = SubmissionStatuses.Rejected;
-        // SubmissionRejected(_bountyId, msg.sender, _submissionId);
+        emit SubmissionRejected(_submissionId, _bountyId);
     }
 
     function getCountBounties()
