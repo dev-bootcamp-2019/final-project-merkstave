@@ -2,18 +2,20 @@ pragma solidity ^0.5.0;
 
 import "./SafeMath.sol";
 import "./Pausable.sol";
+import "./Ownable.sol";
 
-contract Bounties is Pausable {
+contract Bounties is Pausable, Ownable {
     // SafeMath is a library that allows overflow-safe arithmetic operations
     using SafeMath for uint;
-
-    address public owner;
 
     Bounty[] public bounties;
     Submission[] public submissions;
 
+    // one-to-many mapping for bounty-submissions relation
     mapping(uint => uint[]) bountySubmissions;
+    // one-to-many mapping for user-bounties relation
     mapping(address => uint[]) userBounties;
+    // one-to-many mapping for user-subimssions relation
     mapping(address => uint[]) userSubmissions;
 
     enum BountyStatuses {
@@ -54,50 +56,89 @@ contract Bounties is Pausable {
         _;
     }
 
+    /**
+     * @notice Checks whenever the current call has appropriate amount of funds transferred
+     * @param _amount The value to check against amount of received funds
+     */
     modifier checkValueTransferred(uint _amount) {
         require((_amount * 1 wei) == msg.value, 'Transfered value not matching amount provided in the request');
         _;
     }
 
+    /**
+     * @notice Makes sure the current call is done by bounty's issuer
+     * @param _bountyId The bounty ID
+     */
     modifier onlyIssuer(uint _bountyId) {
         require(msg.sender == bounties[_bountyId].issuer);
         _;
     }
 
+    /**
+     * @notice Makes sure the current call is done NOT by bounty's issuer
+     * @param _bountyId The bounty ID
+     */
     modifier onlySubmitter(uint _bountyId) {
         require(msg.sender != bounties[_bountyId].issuer);
         _;
     }
 
-    modifier checkBountiesIndex(uint _index){
+    /*
+     * @notice Makes sure provided ID exists in the bounties storage
+     * @dev We're using array's sequential integers as IDs and not reordering the array,
+     *      so it's possible to determine bounty existence with just a length lookup
+     * @param _index The storage index
+     */
+    modifier checkBountiesIndex(uint _index) {
         require(_index < bounties.length);
         _;
     }
 
+    /**
+     * @notice Makes sure the bounty is in desirable statatus
+     * @param _bountyId The bounty ID
+     * @param _status Desirable status
+     */
     modifier checkBountyStatus(uint _bountyId, BountyStatuses _status) {
         require(bounties[_bountyId].status == _status, 'Incompatible bounty status');
         _;
     }
 
+    /**
+     * @notice Makes sure the bounty has enough funds on balance to pay the reward
+     * @param _bountyId The bounty ID
+     */
     modifier checkRewardDeposit(uint _bountyId) {
         require(bounties[_bountyId].balance >= bounties[_bountyId].reward, 'Not enough funds on balance to pay the reward');
         _;
     }
 
+    /*
+     * @notice Makes sure provided ID exists in the submissions storage
+     * @dev We're using array's sequential integers as IDs and not reordering the array,
+     *      so it's possible to determine submission existence with just a length lookup
+     * @param _index The storage index
+     */
     modifier checkSubmissionsIndex(uint _index) {
         require(_index < submissions.length);
         _;
     }
 
+    /**
+     * @notice Makes sure the submission is in desirable status
+     * @param _submissionId The submission ID
+     * @param _status Desirable status
+     */
     modifier checkSubmissionStatus(uint _submissionId, SubmissionStatuses _status) {
         require(submissions[_submissionId].status == _status);
         _;
     }
 
-    constructor() public {
-        owner = msg.sender;
-    }
-
+    /**
+     * @notice Adds a new bounty
+     * @param _data Bounty description
+     * @param _reward The reward amount that will be payed out to accepted submission
+     */
     function createBounty(string memory _data, uint256 _reward)
         public
         valueNotZero(_reward)
@@ -111,12 +152,19 @@ contract Bounties is Pausable {
         return bountyId;
     }
 
+    /**
+     * @notice Activates the bounty and tops up bounty's balance according to the received funds
+     * @dev The bounty has to be in the "draft" state and only the bounty's issuer can call this
+     * @param _bountyId The bounty ID
+     * @param _value The amount of funds that has to be provided along with the call
+     */
     function activateBounty(uint _bountyId, uint _value)
         payable
         public
         whenNotPaused
         onlyIssuer(_bountyId)
         checkBountiesIndex(_bountyId)
+        checkBountyStatus(_bountyId, BountyStatuses.Draft)
         checkValueTransferred(_value)
     {
         bounties[_bountyId].balance = bounties[_bountyId].balance.add(_value);
@@ -125,6 +173,10 @@ contract Bounties is Pausable {
         emit BountyActivated(_bountyId, bounties[_bountyId].balance);
     }
 
+    /**
+     * @notice Closes the bounty and refunds funds to the issuer, if there's any left on bounty's balance
+     * @param _bountyId The bounty ID
+     */
     function closeBounty(uint _bountyId)
         public
         whenNotPaused
@@ -140,6 +192,12 @@ contract Bounties is Pausable {
         emit BountyClosed(_bountyId, bounties[_bountyId].balance, refundAmount);
     }
 
+    /**
+     * @notice Creates a new submission
+     * @dev The bounty has to be "active" and the submitter shouldn't be the issuer of the bounty
+     * @param _bountyId The bounty ID
+     * @param _data Submission description
+     */
     function createSubmission(uint _bountyId, string memory _data)
         public
         whenNotPaused
@@ -154,6 +212,12 @@ contract Bounties is Pausable {
         emit SubmissionCreated(sId, _bountyId, msg.sender);
     }
 
+    /**
+     * @notice Accepts the submission, closing the bounty and pays out the reward
+     * @dev The bounty has to be "active" and the submission has to be in "new" status
+     * @param _bountyId The bounty ID
+     * @param _submissionId The submission ID
+     */
     function acceptSubmission(uint _bountyId, uint _submissionId)
         public
         whenNotPaused
@@ -176,6 +240,12 @@ contract Bounties is Pausable {
         emit SubmissionAccepted(_submissionId, _bountyId, oldBalance, newBalance, rewardAmount);
     }
 
+    /**
+     * @notice Rejects the submission
+     * @dev The bounty has to be "active" and the submission has to be in "new" status
+     * @param _bountyId The bounty ID
+     * @param _submissionId The submission ID
+     */
     function rejectSubmission(uint _bountyId, uint _submissionId)
         public
         whenNotPaused

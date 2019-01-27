@@ -10,10 +10,15 @@ async function hasReverted(contractCall) {
   }
 }
 
+/**
+ * 
+ * 
+ */
 contract("Bounties", accounts => {
   var instance;
 
   const COWNER = accounts[0];
+  const CNOTOWNER = accounts[1];
 
   const BDATA = 'Test bounty';
   const BISSUER = accounts[0];
@@ -27,8 +32,12 @@ contract("Bounties", accounts => {
     instance = await Bounties.deployed();
   });
 
-  it('sets the owner', async () => {
-    assert.equal(await instance.owner.call(), COWNER);
+  it('checks the sender is the owner', async () => {
+    assert.equal(await instance.isOwner.call({ from: COWNER }), true);
+  });
+
+  it('checks the sender is not the owner', async () => {
+    assert.equal(await instance.isOwner.call({ from: CNOTOWNER }), false);
   });
 
   it('creates bounty', async () => {
@@ -122,5 +131,11 @@ contract("Bounties", accounts => {
   it('unpauses contract', async () => {
     await instance.unpause();
     assert.ok(await instance.createBounty(BDATA, BREWARD, { from: BISSUER }));
+  });
+
+  it('fails to pause contract because of restricted access', async () => {
+    assert.ok(await hasReverted(
+      instance.pause({ from: CNOTOWNER })
+    ));
   });
 });
