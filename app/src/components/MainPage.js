@@ -1,7 +1,6 @@
 import React, { Component } from "react";
-import { AccountData, ContractForm } from "drizzle-react-components";
+import { AccountData } from "drizzle-react-components";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import ContractDataArray from "../ContractDataArray";
 import BountyPage from "./BountyPage";
 import BountyCreatePage from "./BountyCreatePage";
 import SubmissionPage from "./SubmissionPage";

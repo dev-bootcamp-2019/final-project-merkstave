@@ -146,7 +146,7 @@ contract Bounties {
         public
         checkBountiesIndex(_bountyId)
         checkBountyStatus(_bountyId, BountyStatuses.Active)
-        checkSubmissionsOverflow()
+        checkSubmissionsOverflow
         onlySubmitter(_bountyId)
     {
         Submission memory submission = Submission(msg.sender, SubmissionStatuses.New, _data);
