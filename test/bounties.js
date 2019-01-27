@@ -11,8 +11,9 @@ async function hasReverted(contractCall) {
 }
 
 /**
- * 
- * 
+ * Tests are covering the main actions performed either by job poster or by bounty hunter.
+ * Also covering operations with funds to make sure topping up and payout working properly.
+ * And also tests making sure that our Ownable and Pausable patterns as intended.
  */
 contract("Bounties", accounts => {
   var instance;

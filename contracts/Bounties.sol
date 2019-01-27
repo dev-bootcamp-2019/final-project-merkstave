@@ -31,16 +31,24 @@ contract Bounties is Pausable, Ownable {
     }
 
     struct Bounty {
+        // who created the bounty
         address payable issuer;
+        // bounty state
         BountyStatuses status;
+        // bounty description
         string data;
+        // payout amount
         uint reward;
+        // current funds allocated for the bounty
         uint balance;
     }
 
     struct Submission {
+        // who created the submission
         address payable submitter;
+        // submission state
         SubmissionStatuses status;
+        // submission description
         string data;
     }
 
@@ -51,6 +59,10 @@ contract Bounties is Pausable, Ownable {
     event SubmissionAccepted(uint submissionId, uint bountyId, uint oldBalance, uint newBalance, uint rewardAmount);
     event SubmissionRejected(uint submissionId, uint bountyId);
 
+    /**
+     * @notice Checks if the provided value is not zero
+     * @param _value The value to check against zero
+     */
     modifier valueNotZero(uint _value) {
         require(_value != 0);
         _;
@@ -85,7 +97,7 @@ contract Bounties is Pausable, Ownable {
 
     /*
      * @notice Makes sure provided ID exists in the bounties storage
-     * @dev We're using array's sequential integers as IDs and not reordering the array,
+     * @dev I'm using array's sequential integers as IDs and not reordering the array,
      *      so it's possible to determine bounty existence with just a length lookup
      * @param _index The storage index
      */
@@ -115,7 +127,7 @@ contract Bounties is Pausable, Ownable {
 
     /*
      * @notice Makes sure provided ID exists in the submissions storage
-     * @dev We're using array's sequential integers as IDs and not reordering the array,
+     * @dev I'm using array's sequential integers as IDs and not reordering the array,
      *      so it's possible to determine submission existence with just a length lookup
      * @param _index The storage index
      */
