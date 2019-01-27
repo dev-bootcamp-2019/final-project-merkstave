@@ -1,6 +1,11 @@
 pragma solidity ^0.5.0;
 
+import "./SafeMath.sol";
+
 contract Bounties {
+    // SafeMath is a library that allows overflow-safe arithmetic operations
+    using SafeMath for uint;
+
     address public owner;
 
     Bounty[] public bounties;
@@ -63,11 +68,6 @@ contract Bounties {
         _;
     }
 
-    modifier checkBountiesOverflow() {
-        require((bounties.length + 1) > bounties.length);
-        _;
-    }
-
     modifier checkBountiesIndex(uint _index){
         require(_index < bounties.length);
         _;
@@ -80,11 +80,6 @@ contract Bounties {
 
     modifier checkRewardDeposit(uint _bountyId) {
         require(bounties[_bountyId].balance >= bounties[_bountyId].reward, 'Not enough funds on balance to pay the reward');
-        _;
-    }
-
-    modifier checkSubmissionsOverflow() {
-        require((submissions.length + 1) > submissions.length);
         _;
     }
 
@@ -105,11 +100,10 @@ contract Bounties {
     function createBounty(string memory _data, uint256 _reward)
         public
         valueNotZero(_reward)
-        checkBountiesOverflow
         returns (uint)
     {
         Bounty memory bounty = Bounty(msg.sender, BountyStatuses.Draft, _data, _reward, 0);
-        uint bountyId = bounties.push(bounty) - 1;
+        uint bountyId = bounties.push(bounty).sub(1);
         userBounties[msg.sender].push(bountyId);
         emit BountyCreated(msg.sender, bountyId);
         return bountyId;
@@ -122,8 +116,8 @@ contract Bounties {
         checkBountiesIndex(_bountyId)
         checkValueTransferred(_value)
     {
-        bounties[_bountyId].balance += _value;
-        require(bounties[_bountyId].balance >= bounties[_bountyId].reward, "Not enough balance to match reward");
+        bounties[_bountyId].balance = bounties[_bountyId].balance.add(_value);
+        require(bounties[_bountyId].balance >= bounties[_bountyId].reward, "Not enough funds on balance to match reward");
         bounties[_bountyId].status = BountyStatuses.Active;
         emit BountyActivated(_bountyId, bounties[_bountyId].balance);
     }
@@ -146,11 +140,10 @@ contract Bounties {
         public
         checkBountiesIndex(_bountyId)
         checkBountyStatus(_bountyId, BountyStatuses.Active)
-        checkSubmissionsOverflow
         onlySubmitter(_bountyId)
     {
         Submission memory submission = Submission(msg.sender, SubmissionStatuses.New, _data);
-        uint sId = submissions.push(submission) - 1;
+        uint sId = submissions.push(submission).sub(1);
         bountySubmissions[_bountyId].push(sId);
         userSubmissions[msg.sender].push(sId);
         emit SubmissionCreated(sId, _bountyId, msg.sender);
@@ -169,7 +162,7 @@ contract Bounties {
         uint rewardAmount = bounties[_bountyId].reward;
         submissions[_submissionId].status = SubmissionStatuses.Accepted;
         bounties[_bountyId].status = BountyStatuses.Closed;
-        bounties[_bountyId].balance -= rewardAmount;
+        bounties[_bountyId].balance = bounties[_bountyId].balance.sub(rewardAmount);
         uint newBalance = bounties[_bountyId].balance;
         if (rewardAmount > 0 && submissions[_submissionId].submitter != address(0)) {
             submissions[_submissionId].submitter.transfer(rewardAmount);
