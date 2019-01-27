@@ -1,8 +1,9 @@
 pragma solidity ^0.5.0;
 
 import "./SafeMath.sol";
+import "./Pausable.sol";
 
-contract Bounties {
+contract Bounties is Pausable {
     // SafeMath is a library that allows overflow-safe arithmetic operations
     using SafeMath for uint;
 
@@ -100,6 +101,7 @@ contract Bounties {
     function createBounty(string memory _data, uint256 _reward)
         public
         valueNotZero(_reward)
+        whenNotPaused
         returns (uint)
     {
         Bounty memory bounty = Bounty(msg.sender, BountyStatuses.Draft, _data, _reward, 0);
@@ -112,6 +114,7 @@ contract Bounties {
     function activateBounty(uint _bountyId, uint _value)
         payable
         public
+        whenNotPaused
         onlyIssuer(_bountyId)
         checkBountiesIndex(_bountyId)
         checkValueTransferred(_value)
@@ -124,6 +127,7 @@ contract Bounties {
 
     function closeBounty(uint _bountyId)
         public
+        whenNotPaused
         onlyIssuer(_bountyId)
         checkBountiesIndex(_bountyId)
     {
@@ -138,6 +142,7 @@ contract Bounties {
 
     function createSubmission(uint _bountyId, string memory _data)
         public
+        whenNotPaused
         checkBountiesIndex(_bountyId)
         checkBountyStatus(_bountyId, BountyStatuses.Active)
         onlySubmitter(_bountyId)
@@ -151,6 +156,7 @@ contract Bounties {
 
     function acceptSubmission(uint _bountyId, uint _submissionId)
         public
+        whenNotPaused
         onlyIssuer(_bountyId)
         checkBountiesIndex(_bountyId)
         checkSubmissionsIndex(_submissionId)
@@ -172,6 +178,7 @@ contract Bounties {
 
     function rejectSubmission(uint _bountyId, uint _submissionId)
         public
+        whenNotPaused
         onlyIssuer(_bountyId)
         checkBountiesIndex(_bountyId)
         checkSubmissionsIndex(_submissionId)

@@ -1,5 +1,15 @@
 const Bounties = artifacts.require("Bounties");
 
+// Function to verify that a contract call has failed (reverted) during execution
+async function hasReverted(contractCall) {
+  try {
+    await contractCall;
+    return false;
+  } catch (e) {
+    return /revert/.test(e.message);
+  }
+}
+
 contract("Bounties", accounts => {
   var instance;
 
@@ -100,5 +110,17 @@ contract("Bounties", accounts => {
       assert.equal(tx.logs[0].args.id.toString(), 1);
       assert.equal(tx.logs[0].args.balance.toString(), 0);
       assert.equal(tx.logs[0].args.refundAmount.toString(), BREWARD);
+  });
+
+  it('pauses contract', async () => {
+    await instance.pause();
+    assert.ok(await hasReverted(
+      instance.createBounty(BDATA, BREWARD, { from: BISSUER })
+    ));
+  });
+
+  it('unpauses contract', async () => {
+    await instance.unpause();
+    assert.ok(await instance.createBounty(BDATA, BREWARD, { from: BISSUER }));
   });
 });
