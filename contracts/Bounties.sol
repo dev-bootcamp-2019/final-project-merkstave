@@ -259,6 +259,9 @@ contract Bounties is Pausable, Ownable {
         emit SubmissionRejected(_submissionId, _bountyId);
     }
 
+    /**
+     * @notice Get total count of bounties
+     */
     function getCountBounties()
         public
         view
@@ -267,6 +270,10 @@ contract Bounties is Pausable, Ownable {
         return bounties.length;
     }
 
+    /**
+     * @notice Get bounty by ID
+     * @param _id The bounty ID
+     */
     function getBounty(uint _id)
         public
         view
@@ -290,6 +297,10 @@ contract Bounties is Pausable, Ownable {
         );
     }
 
+    /**
+     * @notice Get submission by ID
+     * @param _id The submission ID
+     */
     function getSubmission(uint _id)
         public
         view
@@ -309,6 +320,9 @@ contract Bounties is Pausable, Ownable {
         );
     }
 
+    /**
+     * @notice Get count of bounties issued by the sender
+     */
     function getCountMyBounties()
         public
         view
@@ -317,6 +331,11 @@ contract Bounties is Pausable, Ownable {
         return userBounties[msg.sender].length;
     }
 
+    /**
+     * @notice Get sender's bounty by numerical index
+     * @dev Used for iteration on sender's bounties
+     * @param _index Numerical index
+     */
     function getMyBounty(uint _index)
         public
         view
@@ -341,6 +360,9 @@ contract Bounties is Pausable, Ownable {
         );
     }
 
+    /**
+     * @notice Get count of submissions created by the sender
+     */
     function getCountMySubmissions()
         public
         view
@@ -349,6 +371,11 @@ contract Bounties is Pausable, Ownable {
         return userSubmissions[msg.sender].length;
     }
 
+    /**
+     * @notice Get sender's submission by numerical index
+     * @dev Used for iteration on sender's submissions
+     * @param _index Numerical index
+     */
     function getMySubmission(uint _index)
         public
         view
@@ -369,6 +396,10 @@ contract Bounties is Pausable, Ownable {
         );
     }
 
+    /**
+     * @notice Get count of submissions for the particular bounty
+     * @param _id The bounty ID
+     */
     function getCountBountySubmissions(uint _id)
         public
         view
@@ -377,6 +408,12 @@ contract Bounties is Pausable, Ownable {
         return bountySubmissions[_id].length;
     }
 
+    /**
+     * @notice Get bounty's submission by numerical index
+     * @dev Used for iteration on bounty's submissions
+     * @param _id The bounty ID
+     * @param _index Numerical index
+     */
     function getBountySubmission(uint _id, uint _index)
         public
         view
